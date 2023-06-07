@@ -39,4 +39,6 @@ next-env.d.ts
 #Notion_db
 /Notion_DB
 
-/docs
+/docs/*
+/.yarn
+/.yarnrc.yml
