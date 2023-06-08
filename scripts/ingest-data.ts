@@ -5,21 +5,58 @@ import { pinecone } from '@/utils/pinecone-client';
 import { PDFLoader } from 'langchain/document_loaders/fs/pdf';
 import { PINECONE_INDEX_NAME, PINECONE_NAME_SPACE } from '@/config/pinecone';
 import { DirectoryLoader } from 'langchain/document_loaders/fs/directory';
+import {
+  PuppeteerEvaluate,
+  PuppeteerWebBaseLoader,
+} from 'langchain/document_loaders';
+import { getRMAHandbooks } from './rma-handbook-loader';
+import { Document } from 'langchain/document';
+import { Browser, Page, Puppeteer } from 'puppeteer';
+import { PuppeteerWebBaseLoaderOptions } from 'langchain/dist/document_loaders/web/puppeteer';
 
 /* Name of directory to retrieve your files from 
    Make sure to add your PDF files inside the 'docs' folder
 */
 const filePath = 'docs';
 
+/*load raw docs from the all files in the directory */
+// const directoryLoader = new DirectoryLoader(filePath, {
+//       '.pdf': (path) => new PDFLoader(path),
+// });
+
+// const rawDocs = await directoryLoader.load();
+
+// const webOptions: PuppeteerWebBaseLoaderOptions = {
+//   evaluate: 'page'
+// }
+
 export const run = async () => {
   try {
-    /*load raw docs from the all files in the directory */
-    const directoryLoader = new DirectoryLoader(filePath, {
-      '.pdf': (path) => new PDFLoader(path),
-    });
+    let rawDocs: Document<Record<string, any>>[] = [];
+    const urls = await getRMAHandbooks();
 
-    // const loader = new PDFLoader(filePath);
-    const rawDocs = await directoryLoader.load();
+    await Promise.any(
+      urls.map(async (item) => {
+        const webLoader = new PuppeteerWebBaseLoader(item, {
+          launchOptions: {
+            headless: true,
+          },
+          gotoOptions: {
+            waitUntil: 'domcontentloaded',
+          },
+          /** Pass custom evaluate, in this case you get page and browser instances */
+          async evaluate(page: Page, browser: Browser) {
+            const result = await page.evaluate(() => {
+              return new PDFLoader(page.);
+            });
+            return result;
+          },
+        });
+        let res = await webLoader.load();
+        console.log(res);
+        rawDocs.push(...res);
+      }),
+    );
 
     /* Split text into chunks */
     const textSplitter = new RecursiveCharacterTextSplitter({
