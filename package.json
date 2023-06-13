@@ -19,6 +19,8 @@
     "@microsoft/fetch-event-source": "^2.0.1",
     "@pinecone-database/pinecone": "0.0.14",
     "@radix-ui/react-accordion": "^1.1.1",
+    "axios": "^1.4.0",
+    "cheerio": "^1.0.0-rc.12",
     "clsx": "^1.2.1",
     "dotenv": "^16.0.3",
     "langchain": "0.0.82",
@@ -32,6 +34,7 @@
     "tailwind-merge": "^1.10.0"
   },
   "devDependencies": {
+    "@types/jquery": "^3.5.16",
     "@types/node": "^18.14.6",
     "@types/react": "^18.0.28",
     "@types/react-dom": "^18.0.11",
